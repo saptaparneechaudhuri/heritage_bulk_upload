@@ -1,0 +1,8 @@
+heritage_bulk_upload.addcontent:
+  path: '/node/{node}/import'
+  defaults:
+    _form: '\Drupal\heritage_bulk_upload\Form\ImportContentText'
+    _title: 'Bulk Import Content to a heritage Text'
+  requirements:
+    _permission: 'add heritage text'
+    _custom_access: '\Drupal\heritage_schema\Controller\HeritageText::showtoc'
