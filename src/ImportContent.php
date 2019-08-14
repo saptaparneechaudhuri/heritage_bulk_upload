@@ -58,7 +58,8 @@ class ImportContent {
       $field_name = 'field_' . $text_machine_name . '_' . $params['source_id'] . '_text';
 
       // Check whether a node exists for this term_id or not.
-      $nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle AND langcode = :langcode", [':term_id' => $term_id, ':bundle' => $text_machine_name, ':langcode' => $row[count($labels) - 1]])->fetchField();
+      //$nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle AND langcode = :langcode", [':term_id' => $term_id, ':bundle' => $text_machine_name, ':langcode' => $row[count($labels) - 1]])->fetchField();
+      $nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle", [':term_id' => $term_id, ':bundle' => $text_machine_name])->fetchField();
       if (isset($nid) && $nid > 0) {
         $node = Node::load($nid);
         $node->{$field_name}->value = $content;
