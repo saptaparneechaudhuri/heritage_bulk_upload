@@ -78,7 +78,7 @@ class ImportContentText extends FormBase {
     // If language gets removed, no need for Language here
     $description = $description . ', Content';
 
-   // $csvCount = $label_count + 2;
+    // $csvCount = $label_count + 2;
     $csvCount = $label_count + 1;
     $form['text'] = [
       '#type' => 'hidden',
@@ -150,6 +150,7 @@ class ImportContentText extends FormBase {
           '#type' => 'language_select',
           '#title' => $this->t('Language'),
           '#languages' => LanguageInterface::STATE_CONFIGURABLE | LanguageInterface::STATE_SITE_DEFAULT,
+          // '#languages' => LanguageInterface::STATE_ALL,
         ];
         $form['text_info']['fieldset']['source_formats']['file'] = [
           '#type' => 'managed_file',
@@ -203,9 +204,10 @@ class ImportContentText extends FormBase {
     $path = File::load($uploaded_file_id)->getFileUri();
     if ($format == 'text') {
       $params['langcode'] = $form_state->getValue('selected_langcode');
+
       $csv_count = $form_state->getValue('csv_count');
       $params['csv_labels'] = $form_state->getValue('csv_labels');
-      //print_r('csv_labels');exit;
+      // print_r('csv_labels');exit;.
       $labels = explode(",", $params['csv_labels']);
       $handle = fopen(drupal_realpath($path), "r");
       $row = fgetcsv($handle);

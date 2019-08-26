@@ -25,13 +25,12 @@ class ImportContent {
     $labels = explode(",", $params['csv_labels']);
     $index = 0;
     $title = '';
-    //$content = $row[count($labels) - 2];
-
-    // Since content is the last column
+    // $content = $row[count($labels) - 2];
+    // Since content is the last column.
     $content = $row[count($labels) - 1];
     if (isset($content)) {
       // Get the taxonomy id of the level to which the content needs to be added.
-      // Since there are 3 columns now so count($labels) - 3 needs to be changed
+      // Since there are 3 columns now so count($labels) - 3 needs to be changed.
       while ($index <= count($labels) - 2) {
         $level_name = trim($labels[$index] . ' ' . $row[$index]);
         if ($parent_tid == 0) {
@@ -43,11 +42,10 @@ class ImportContent {
         $curr_parent_tid = $parent_tid;
         $parent_tid = $term_id;
         $index++;
-        // if ($index == count($labels) - 2)
-
-        // This loop shows the title as 1.1 
+        // If ($index == count($labels) - 2)
+        // This loop shows the title as 1.1
         // It collects information from csv, if column Chapter and Sloka has
-        // 1,1 respectively, then title shows as 1.1
+        // 1,1 respectively, then title shows as 1.1.
         if ($index == count($labels) - 1) {
           $title = $title . $row[$index - 1];
         }
@@ -58,13 +56,13 @@ class ImportContent {
       $field_name = 'field_' . $text_machine_name . '_' . $params['source_id'] . '_text';
 
       // Check whether a node exists for this term_id or not.
-      //$nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle AND langcode = :langcode", [':term_id' => $term_id, ':bundle' => $text_machine_name, ':langcode' => $row[count($labels) - 1]])->fetchField();
-      $nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle", [':term_id' => $term_id, ':bundle' => $text_machine_name])->fetchField();
+      $nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle AND langcode = :langcode", [':term_id' => $term_id, ':bundle' => $text_machine_name, ':langcode' => $params['langcode']])->fetchField();
+      // $nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle", [':term_id' => $term_id, ':bundle' => $text_machine_name])->fetchField();
       if (isset($nid) && $nid > 0) {
         $node = Node::load($nid);
         $node->{$field_name}->value = $content;
         $node->{$field_name}->format = 'full_html';
-       // $node->{$field_name}->langcode = $row[count($labels) - 1];
+        $node->{$field_name}->langcode = $params['langcode'];
         $node->save();
       }
       else {
@@ -74,7 +72,7 @@ class ImportContent {
             'title' => $title,
             $field_name => ['value' => $content, 'format' => 'full_html'],
             'field_positional_index' => [['target_id' => (int) $curr_parent_tid], ['target_id' => (int) $term_id]],
-            //'langcode' => $row[count($labels) - 1],
+            'langcode' => $params['langcode'],
           ]
          );
         $node->save();
