@@ -6,9 +6,12 @@ use Drupal\file\Entity\File;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Archiver\Zip;
+// use Drupal\Core\Archiver\Zip;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Archiver\ArchiverManager;
+
 
 /**
  * Implementing the import content text form.
@@ -24,14 +27,32 @@ class ImportContentText extends FormBase {
   protected $entityTypeManager;
 
   /**
+   * Drupal\Core\File\FileSystemInterface definition.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+
+  protected $fileSystem;
+
+   /**
+   * Drupal\Core\Archiver\ArchiverManager definition.
+   *
+   * @var \Drupal\Core\Archiver\ArchiverManager
+   */
+
+  protected $pluginManagerArchiver;
+
+  /**
    * Class constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager service.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager,FileSystemInterface $file_system, ArchiverManager $plugin_manager_archiver) {
 
     $this->entityTypeManager = $entityTypeManager;
+    $this->fileSystem = $file_system;
+    $this->pluginManagerArchiver = $plugin_manager_archiver;
 
   }
 
@@ -42,7 +63,9 @@ class ImportContentText extends FormBase {
     // Instantiates this form class.
     return new static(
       // Load the service required to construct this class.
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('file_system'),
+      $container->get('plugin.manager.archiver')
 
     );
   }
@@ -190,6 +213,9 @@ class ImportContentText extends FormBase {
    * {@inheritdoc}
    */
 
+
+  
+
   /**
    * Map content to the corresponding fields.
    */
@@ -199,10 +225,16 @@ class ImportContentText extends FormBase {
     $params['source_id'] = $form_state->getValue('sources');
     $params['format'] = $form_state->getValue('format');
     $uploaded_file_id = $form_state->getValue('file')[0];
+    $uploaded_audio_file_id = $form_state->getValue(['audiofiles',0]);
+    // $uploaded_audio_file_id->setPermanent();
+    // $uploaded_audio_file_id->save();
     $format = $form_state->getValue('format');
     // print_r($format); exit;.
-    $path = File::load($uploaded_file_id)->getFileUri();
+    // $path = File::load($uploaded_file_id)->getFileUri();
+    //$path_audio = File::load($uploaded_audio_file_id)->getFileUri();
+
     if ($format == 'text') {
+      $path = File::load($uploaded_file_id)->getFileUri();
       $params['langcode'] = $form_state->getValue('selected_langcode');
 
       $csv_count = $form_state->getValue('csv_count');
@@ -232,7 +264,23 @@ class ImportContentText extends FormBase {
       }
     }
     elseif ($format == 'audio') {
-      Zip::extract("public://file_uploads/audio/extract", $path);
+     // $fileRealPath = \Drupal\file\Entity\File::load($uploaded_audio_file_id)->getFileUri();
+     // $fileRealPath = File::load($uploaded_audio_file_id)->getFileUri();
+      if (is_numeric($uploaded_audio_file_id)) {
+        $file = $this->entityTypeManager->getStorage('file')->load($uploaded_audio_file_id);
+      }
+      if($file) {
+
+
+      $fileRealPath = $this->fileSystem->realpath($file->getFileUri());
+
+
+      $zip = $this->pluginManagerArchiver->getInstance(['filepath' => $fileRealPath]);
+      // A file will be extracted to the public folder.
+      $zip->extract('public://file_uploads/audio/extract');
+
+      //Zip::extract("public://file_uploads/audio/extract", $fileRealPath);
+      
       $uploaded_files = [];
       // Dir to scan.
       $d = dir("/");
@@ -247,8 +295,9 @@ class ImportContentText extends FormBase {
       $d->close();
       // Or whatever desired.
       sort($uploaded_files);
-      print_r($uploaded_files);exit;
+      //print_r($uploaded_files);exit;
     }
+  }
     $batch = [
       'title' => $this->t('processing...'),
       'operations' => $operations,
