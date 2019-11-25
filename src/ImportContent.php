@@ -63,6 +63,11 @@ class ImportContent {
         $node->{$field_name}->value = $content;
         $node->{$field_name}->format = 'full_html';
         $node->{$field_name}->langcode = $params['langcode'];
+        if ($params['langcode'] == 'dv') {
+
+          $node->field_original_content->value = TRUE;
+        }
+
         $node->save();
       }
       else {
@@ -74,7 +79,13 @@ class ImportContent {
             'field_positional_index' => [['target_id' => (int) $curr_parent_tid], ['target_id' => (int) $term_id]],
             'langcode' => $params['langcode'],
           ]
+
          );
+        if ($params['langcode'] == 'dv') {
+
+          $node->field_original_content->value = TRUE;
+        }
+
         $node->save();
       }
     }
@@ -96,7 +107,8 @@ class ImportContent {
       $message = "Content Imported";
     }
     else {
-      $message = $this->t('Content Imported with error.');
+      $message = 'Content Imported with error.';
+
     }
     drupal_set_message($message);
   }

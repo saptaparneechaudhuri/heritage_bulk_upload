@@ -277,13 +277,17 @@ class ImportContentText extends FormBase {
 
       $zip = $this->pluginManagerArchiver->getInstance(['filepath' => $fileRealPath]);
       // A file will be extracted to the public folder.
-      $zip->extract('public://file_uploads/audio/extract');
+      $zip->extract('public://file_uploads/audio/extract/');
+        $uploaded_files = [];
+         $data = file_get_contents('public://file_uploads/audio/extract/');
+        $file = file_save_data($data, 'public://file_uploads/audio/extract/', FILE_EXISTS_REPLACE);
 
-      //Zip::extract("public://file_uploads/audio/extract", $fileRealPath);
+
+    
       
-      $uploaded_files = [];
+      //$uploaded_files = [];
       // Dir to scan.
-      $d = dir("/");
+      $d = dir("public://file_uploads/audio/extract/audio");
       // Mind the strict bool check!
       while (FALSE !== ($entry = $d->read())) {
         if ($entry[0] == '.') {
@@ -296,8 +300,22 @@ class ImportContentText extends FormBase {
       // Or whatever desired.
       sort($uploaded_files);
       //print_r($uploaded_files);exit;
+       // foreach ($uploaded_files as $upload) {
+       //   $operations[] = [
+       //    // The function to run on each file.
+       //      '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
+
+       //    ];
+
+       // }
+        $operations[] = [
+          // The function to run on each file.
+            '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$uploaded_files[0], $params],
+
+          ];
+        
     }
-  }
+  
     $batch = [
       'title' => $this->t('processing...'),
       'operations' => $operations,
@@ -305,6 +323,7 @@ class ImportContentText extends FormBase {
     ];
     batch_set($batch);
   }
+}
 
   /**
    * Ajax callback function.
