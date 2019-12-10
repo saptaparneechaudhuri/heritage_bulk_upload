@@ -6,12 +6,11 @@ use Drupal\file\Entity\File;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
-// use Drupal\Core\Archiver\Zip;
+// Use Drupal\Core\Archiver\Zip;.
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Archiver\ArchiverManager;
-
 
 /**
  * Implementing the import content text form.
@@ -34,7 +33,7 @@ class ImportContentText extends FormBase {
 
   protected $fileSystem;
 
-   /**
+  /**
    * Drupal\Core\Archiver\ArchiverManager definition.
    *
    * @var \Drupal\Core\Archiver\ArchiverManager
@@ -48,7 +47,7 @@ class ImportContentText extends FormBase {
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager service.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager,FileSystemInterface $file_system, ArchiverManager $plugin_manager_archiver) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, FileSystemInterface $file_system, ArchiverManager $plugin_manager_archiver) {
 
     $this->entityTypeManager = $entityTypeManager;
     $this->fileSystem = $file_system;
@@ -213,9 +212,6 @@ class ImportContentText extends FormBase {
    * {@inheritdoc}
    */
 
-
-  
-
   /**
    * Map content to the corresponding fields.
    */
@@ -225,15 +221,16 @@ class ImportContentText extends FormBase {
     $params['source_id'] = $form_state->getValue('sources');
     $params['format'] = $form_state->getValue('format');
     $uploaded_file_id = $form_state->getValue('file')[0];
-    $uploaded_audio_file_id = $form_state->getValue(['audiofiles',0]);
+    $uploaded_audio_file_id = $form_state->getValue(['audiofiles', 0]);
     // $uploaded_audio_file_id->setPermanent();
     // $uploaded_audio_file_id->save();
     $format = $form_state->getValue('format');
     // print_r($format); exit;.
     // $path = File::load($uploaded_file_id)->getFileUri();
-    //$path_audio = File::load($uploaded_audio_file_id)->getFileUri();
-
+    // $path_audio = File::load($uploaded_audio_file_id)->getFileUri();
+    // $operations = [];.
     if ($format == 'text') {
+
       $path = File::load($uploaded_file_id)->getFileUri();
       $params['langcode'] = $form_state->getValue('selected_langcode');
 
@@ -262,68 +259,67 @@ class ImportContentText extends FormBase {
         drupal_set_message($this->t('CSV file seems to be empty'), 'error');
         return;
       }
+      $batch = [
+        'title' => $this->t('processing...'),
+        'operations' => isset($operations) ? $operations : NULL,
+        'finished' => '\Drupal\heritage_bulk_upload\ImportContent::importContentFinishedCallback',
+      ];
+      batch_set($batch);
     }
     elseif ($format == 'audio') {
-     // $fileRealPath = \Drupal\file\Entity\File::load($uploaded_audio_file_id)->getFileUri();
-     // $fileRealPath = File::load($uploaded_audio_file_id)->getFileUri();
+      // $fileRealPath = \Drupal\file\Entity\File::load($uploaded_audio_file_id)->getFileUri();
+      // $fileRealPath = File::load($uploaded_audio_file_id)->getFileUri();
       if (is_numeric($uploaded_audio_file_id)) {
         $file = $this->entityTypeManager->getStorage('file')->load($uploaded_audio_file_id);
       }
-      if($file) {
+      if ($file) {
 
+        $fileRealPath = $this->fileSystem->realpath($file->getFileUri());
 
-      $fileRealPath = $this->fileSystem->realpath($file->getFileUri());
-
-
-      $zip = $this->pluginManagerArchiver->getInstance(['filepath' => $fileRealPath]);
-      // A file will be extracted to the public folder.
-      $zip->extract('public://file_uploads/audio/extract/');
+        $zip = $this->pluginManagerArchiver->getInstance(['filepath' => $fileRealPath]);
+        // A file will be extracted to the public folder.
+        $zip->extract('public://file_uploads/audio/extract/');
         $uploaded_files = [];
-         $data = file_get_contents('public://file_uploads/audio/extract/');
+        $data = file_get_contents('public://file_uploads/audio/extract/');
         $file = file_save_data($data, 'public://file_uploads/audio/extract/', FILE_EXISTS_REPLACE);
 
-
-    
-      
-      //$uploaded_files = [];
-      // Dir to scan.
-      $d = dir("public://file_uploads/audio/extract/audio");
-      // Mind the strict bool check!
-      while (FALSE !== ($entry = $d->read())) {
-        if ($entry[0] == '.') {
-          // Ignore anything starting with a dot.
-          continue;
+        // $uploaded_files = [];
+        // Dir to scan.
+        $d = dir("public://file_uploads/audio/extract/audio");
+        // Mind the strict bool check!
+        while (FALSE !== ($entry = $d->read())) {
+          if ($entry[0] == '.') {
+            // Ignore anything starting with a dot.
+            continue;
+          }
+          $uploaded_files[] = $entry;
         }
-        $uploaded_files[] = $entry;
-      }
-      $d->close();
-      // Or whatever desired.
-      sort($uploaded_files);
-      //print_r($uploaded_files);exit;
-       // foreach ($uploaded_files as $upload) {
-       //   $operations[] = [
-       //    // The function to run on each file.
-       //      '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
-
-       //    ];
-
-       // }
+        $d->close();
+        // Or whatever desired.
+        sort($uploaded_files);
+        // print_r($uploaded_files);exit;
+        // foreach ($uploaded_files as $upload) {.
         $operations[] = [
           // The function to run on each file.
-            '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$uploaded_files[0], $params],
+          '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
 
-          ];
-        
+        ];
+
+        // }
+        // $operations[] = [
+        //   // The function to run on each file.
+        //  //   '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$uploaded_files[0], $params],
+        // ];
+      }
+
+      $batch = [
+        'title' => $this->t('processing...'),
+        'operations' => isset($operations) ? $operations : NULL,
+        'finished' => '\Drupal\heritage_bulk_upload\ImportContent::importContentFinishedCallback',
+      ];
+      batch_set($batch);
     }
-  
-    $batch = [
-      'title' => $this->t('processing...'),
-      'operations' => $operations,
-      'finished' => '\Drupal\heritage_bulk_upload\ImportContent::importContentFinishedCallback',
-    ];
-    batch_set($batch);
   }
-}
 
   /**
    * Ajax callback function.

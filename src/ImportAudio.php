@@ -39,8 +39,11 @@ class ImportAudio {
 
       $sloka_id = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => 'gita', ':name' => $sloka_name, ':parent_tid' => $chapter_id])->fetchField();
 
-      $data = file_get_contents($upload);
+     // $data = file_get_contents($upload);
+      $data = file_get_contents("public://file_uploads/audio/extract/audio/" . $upload);
+
       $file = file_save_data($data, "public://file_uploads/audio/extract/audio/" . $upload, FILE_EXISTS_REPLACE);
+     // print_r($file);exit;
 
       // Check whether a node exists for this term_id or not.
       $nid = db_query("SELECT entity_id FROM `node__field_positional_index` WHERE field_positional_index_target_id = :term_id AND bundle = :bundle AND langcode = :langcode", [':term_id' => $sloka_id, ':bundle' => $text_machine_name, ':langcode' => 'dv'])->fetchField();
@@ -49,6 +52,8 @@ class ImportAudio {
       if (isset($nid) && $nid > 0) {
         $node = Node::load($nid);
         $node->set($field_name, $file->id());
+       
+
 
         $node->save();
       }
@@ -58,6 +63,7 @@ class ImportAudio {
                       'type' => $text_machine_name,
                       'title' => $title,
                       $field_name => ['target_id' => $file->id()],
+                     
                       'field_positional_index' => [['target_id' => (int) $chapter_id], ['target_id' => (int) $sloka_id]],
                       'langcode' => 'dv',
                     ]
