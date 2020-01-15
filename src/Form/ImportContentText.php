@@ -217,6 +217,10 @@ class ImportContentText extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $params['text'] = $form_state->getValue('text');
+    // $node_info = Node::load($params['text']);
+    //  $text_machine_name = $node_info->field_machine_name->value;
+    // $level_labels = explode(',', $node_info->field_level_labels->value);
+    // print_r($level_labels);exit;
     $index = 0;
     $params['source_id'] = $form_state->getValue('sources');
     $params['format'] = $form_state->getValue('format');
@@ -275,49 +279,55 @@ class ImportContentText extends FormBase {
       if ($file) {
 
         $fileRealPath = $this->fileSystem->realpath($file->getFileUri());
-
+        $time = time();
         $zip = $this->pluginManagerArchiver->getInstance(['filepath' => $fileRealPath]);
         // A file will be extracted to the public folder.
-        $zip->extract('public://file_uploads/audio/extract/');
+        $zip->extract('public://file_uploads/audio/extract/' . $time . '/');
+        $files_extracted = $zip->listContents();
         $uploaded_files = [];
-        $data = file_get_contents('public://file_uploads/audio/extract/');
-        $file = file_save_data($data, 'public://file_uploads/audio/extract/', FILE_EXISTS_REPLACE);
+        $uploaded_directory = 'public://file_uploads/audio/extract/' . $time . '/';
+        // $data = file_get_contents('public://file_uploads/audio/extract/' . $time . '/');
+        // $file = file_save_data($data, 'public://file_uploads/audio/extract/' . $time . '/', FILE_EXISTS_REPLACE);
 
         // $uploaded_files = [];
         // Dir to scan.
-        $d = dir("public://file_uploads/audio/extract/audio");
+        // $d = dir("public://file_uploads/audio/extract/" . $time . '/' . $files_extracted[0] . '/');
         // Mind the strict bool check!
-        while (FALSE !== ($entry = $d->read())) {
-          if ($entry[0] == '.') {
-            // Ignore anything starting with a dot.
-            continue;
-          }
-          $uploaded_files[] = $entry;
+        for ($i= 1; $i < count($files_extracted); $i++) {
+          $uploaded_files[] = $uploaded_directory . $files_extracted[$i];
         }
-        $d->close();
+        // $d->close();
         // Or whatever desired.
         sort($uploaded_files);
-        // print_r($uploaded_files);exit;
-        // foreach ($uploaded_files as $upload) {.
-        $operations[] = [
+        // print("<pre>"); print_r($uploaded_files);exit;
+      //  foreach ($uploaded_files as $key => $upload) {
+          // print_r($upload);
+          // print_r("bye");exit;
+        foreach($uploaded_files as $upload) {
+          $operations[] = [
           // The function to run on each file.
-          '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
+            '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
 
-        ];
+          ];
 
-        // }
-        // $operations[] = [
-        //   // The function to run on each file.
-        //  //   '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$uploaded_files[0], $params],
-        // ];
+          
+
+        }
+          // $operations[] = [
+          // // The function to run on each file.
+          //   '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
+
+          // ];
+            
+
+          $batch = [
+            'title' => $this->t('processing...'),
+            'operations' => isset($operations) ? $operations : NULL,
+            'finished' => '\Drupal\heritage_bulk_upload\ImportAudio::importAudioFinishedCallback',
+          ];
+          batch_set($batch);
+       
       }
-
-      $batch = [
-        'title' => $this->t('processing...'),
-        'operations' => isset($operations) ? $operations : NULL,
-        'finished' => '\Drupal\heritage_bulk_upload\ImportContent::importContentFinishedCallback',
-      ];
-      batch_set($batch);
     }
   }
 
