@@ -133,7 +133,9 @@ class ImportContentText extends FormBase {
         '#title' => $this->t('Select the Source to which content is imported'),
         '#required' => TRUE,
         '#options' => $sources,
-        '#default_value' => isset($form['text_info']['fieldset']['sources']['widget']['#default_value']) ? $form['text_info']['fieldset']['sources']['widget']['#default_value'] : NULL,
+       // '#default_value' => isset($form['text_info']['fieldset']['sources']['widget']['#default_value']) ? $form['text_info']['fieldset']['sources']['widget']['#default_value'] : NULL,
+        '#default_value' => isset($form['text_info']['fieldset']['sources']['#default_value']) ? $form['text_info']['fieldset']['sources']['#default_value'] : NULL,
+
         '#ajax' => [
           'event' => 'change',
           'wrapper' => 'source-formats',
@@ -149,7 +151,7 @@ class ImportContentText extends FormBase {
 
       }
       if (!isset($sourceid)) {
-        $sourceid = $form['text_info']['fieldset']['sources']['widget']['#default_value'];
+        $sourceid = $form['text_info']['fieldset']['sources']['#default_value'];
       }
       // print_r($sourceid);
       $form['text_info']['fieldset']['source_formats'] = [
@@ -299,7 +301,7 @@ class ImportContentText extends FormBase {
         // $d->close();
         // Or whatever desired.
         sort($uploaded_files);
-        // print("<pre>"); print_r($uploaded_files);exit;
+      //   print("<pre>"); print_r($uploaded_files);exit;
       //  foreach ($uploaded_files as $key => $upload) {
           // print_r($upload);
           // print_r("bye");exit;

@@ -46,7 +46,7 @@ class ImportAudio {
         else {
           $position_index_array = explode('.', $title);
           // print_r($title);
-          // print_r($position_index_array);exit;
+          //print_r($position_index_array);exit;
           $taxonomy_ids = [];
           $i = 0;
           for ($j = 0; $j < $numLevels; $j++) {
@@ -154,6 +154,8 @@ class ImportAudio {
             // $node->save();
           } */
         }
+          $context['results'][] = $title;
+          $context['results']['textname'] = $text_machine_name;
       }
       // $l = explode(".", $upload);
       // $l should look like $l = [1-1,mp3]
@@ -268,8 +270,8 @@ class ImportAudio {
        */
 
     }
-    $context['results'][] = $title;
-    $context['results']['textname'] = $text_machine_name;
+  //  $context['results'][] = $title;
+  //  $context['results']['textname'] = $text_machine_name;
     // Optional message displayed under the progressbar.
     $context['message'] = t('Running Batch');
 
@@ -278,7 +280,7 @@ class ImportAudio {
   /**
    * Batch 'finished' callback used by importUsers.
    */
-  public function importAudioFinishedCallback($success, $results, $operations) {
+  public static function importAudioFinishedCallback($success, $results, $operations) {
     // The 'success' parameter means no fatal PHP errors were detected. All
     // other error management should be handled using 'results'.
     if ($success) {
