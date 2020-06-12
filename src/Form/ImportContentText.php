@@ -290,45 +290,39 @@ class ImportContentText extends FormBase {
         $uploaded_directory = 'public://file_uploads/audio/extract/' . $time . '/';
         // $data = file_get_contents('public://file_uploads/audio/extract/' . $time . '/');
         // $file = file_save_data($data, 'public://file_uploads/audio/extract/' . $time . '/', FILE_EXISTS_REPLACE);
-
         // $uploaded_files = [];
         // Dir to scan.
         // $d = dir("public://file_uploads/audio/extract/" . $time . '/' . $files_extracted[0] . '/');
         // Mind the strict bool check!
-        for ($i= 1; $i < count($files_extracted); $i++) {
+        for ($i = 1; $i < count($files_extracted); $i++) {
           $uploaded_files[] = $uploaded_directory . $files_extracted[$i];
         }
         // $d->close();
         // Or whatever desired.
         sort($uploaded_files);
-      //   print("<pre>"); print_r($uploaded_files);exit;
-      //  foreach ($uploaded_files as $key => $upload) {
-          // print_r($upload);
-          // print_r("bye");exit;
-        foreach($uploaded_files as $upload) {
+        // print("<pre>"); print_r($uploaded_files);exit;
+        //  foreach ($uploaded_files as $key => $upload) {
+        // print_r($upload);
+        // print_r("bye");exit;
+        foreach ($uploaded_files as $upload) {
           $operations[] = [
           // The function to run on each file.
             '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
 
           ];
 
-          
-
         }
-          // $operations[] = [
-          // // The function to run on each file.
-          //   '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
+        // $operations[] = [
+        // // The function to run on each file.
+        //   '\Drupal\heritage_bulk_upload\ImportAudio::importAudio', [$upload, $params],
+        // ];
+        $batch = [
+          'title' => $this->t('processing...'),
+          'operations' => isset($operations) ? $operations : NULL,
+          'finished' => '\Drupal\heritage_bulk_upload\ImportAudio::importAudioFinishedCallback',
+        ];
+        batch_set($batch);
 
-          // ];
-            
-
-          $batch = [
-            'title' => $this->t('processing...'),
-            'operations' => isset($operations) ? $operations : NULL,
-            'finished' => '\Drupal\heritage_bulk_upload\ImportAudio::importAudioFinishedCallback',
-          ];
-          batch_set($batch);
-       
       }
     }
   }

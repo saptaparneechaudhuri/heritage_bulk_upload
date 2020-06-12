@@ -31,7 +31,17 @@ class ImportAudio {
       array_pop($file_level_array);
       // print_r($upload);print_r($file_level_array);print_r($numLevels);
       if ($numLevels == count($file_level_array)) {
-        $title_array = explode('.mp3', $uploaded_file_name);
+        if(strpos($uploaded_file_name, '.mp3')) {
+          $title_array = explode('.mp3', $uploaded_file_name);
+
+        }
+        if(strpos($uploaded_file_name,'.MP3')) {
+          $title_array = explode('.MP3', $uploaded_file_name);
+
+        }
+       // $title_array = explode('.mp3', $uploaded_file_name);
+       // $title_array = explode('.MP3', $uploaded_file_name);
+
         $title = $title_array[0];
         $field_name = 'field_' . $text_machine_name . '_' . $params['source_id'] . '_audio';
         $data = file_get_contents($upload);
@@ -46,7 +56,7 @@ class ImportAudio {
         else {
           $position_index_array = explode('.', $title);
           // print_r($title);
-          //print_r($position_index_array);exit;
+          // print_r($position_index_array);exit;
           $taxonomy_ids = [];
           $i = 0;
           for ($j = 0; $j < $numLevels; $j++) {
@@ -70,92 +80,90 @@ class ImportAudio {
           );
           $node->save();
           // Create the node.
-          
-          
           /* if ($numLevels == 1) {
-            // Find the chapter name.
-            // $var = explode('.', $title);.
-            $chapter_name = $level_labels[0] . ' ' . $file_level_array[0];
+          // Find the chapter name.
+          // $var = explode('.', $title);.
+          $chapter_name = $level_labels[0] . ' ' . $file_level_array[0];
 
-            // Find out the chapter tid.
-            $chapter_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name", [':vid' => $text_machine_name, ':name' => $chapter_name])->fetchField();
+          // Find out the chapter tid.
+          $chapter_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name", [':vid' => $text_machine_name, ':name' => $chapter_name])->fetchField();
 
-            // Create a node with chapter tid.
-            $node = entity_create(
-                   [
-                     'type' => $text_machine_name,
-                     'title' => $title,
-                     $field_name => ['target_id' => $file->id()],
+          // Create a node with chapter tid.
+          $node = entity_create(
+          [
+          'type' => $text_machine_name,
+          'title' => $title,
+          $field_name => ['target_id' => $file->id()],
 
-                     'field_positional_index' => [['target_id' => (int) $chapter_tid]],
-                     'langcode' => 'dv',
-                   ]
+          'field_positional_index' => [['target_id' => (int) $chapter_tid]],
+          'langcode' => 'dv',
+          ]
 
-            );
+          );
 
-            // $node->save();
+          // $node->save();
           }
 
           else if ($numLevels == 2) {
 
-            // Find the chapter name.
-            // $var = explode(',', $title);.
-            $chapter_name = $level_labels[0] . ' ' . $file_level_array[0];
-            $sloka_name = $level_labels[1] . ' ' . $file_level_array[1];
+          // Find the chapter name.
+          // $var = explode(',', $title);.
+          $chapter_name = $level_labels[0] . ' ' . $file_level_array[0];
+          $sloka_name = $level_labels[1] . ' ' . $file_level_array[1];
 
-            // Find the chapter tid.
-            $chapter_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name", [':vid' => $text_machine_name, ':name' => $chapter_name])->fetchField();
+          // Find the chapter tid.
+          $chapter_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name", [':vid' => $text_machine_name, ':name' => $chapter_name])->fetchField();
 
-            // Find the sloka tid.
-            $sloka_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => $text_machine_name, ':name' => $sloka_name, ':parent_tid' => $chapter_tid])->fetchField();
+          // Find the sloka tid.
+          $sloka_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => $text_machine_name, ':name' => $sloka_name, ':parent_tid' => $chapter_tid])->fetchField();
 
-            // Create the node with Chapter tid and sloka tid.
-            $node = entity_create(
-                    [
-                      'type' => $text_machine_name,
-                      'title' => $title,
-                      $field_name => ['target_id' => $file->id()],
+          // Create the node with Chapter tid and sloka tid.
+          $node = entity_create(
+          [
+          'type' => $text_machine_name,
+          'title' => $title,
+          $field_name => ['target_id' => $file->id()],
 
-                      'field_positional_index' => [['target_id' => (int) $chapter_tid], ['target_id' => (int) $sloka_tid]],
-                      'langcode' => 'dv',
-                    ]
+          'field_positional_index' => [['target_id' => (int) $chapter_tid], ['target_id' => (int) $sloka_tid]],
+          'langcode' => 'dv',
+          ]
 
-            );
+          );
 
-            // $node->save();
+          // $node->save();
           }
 
           else if ($numLevels == 3) {
-            $var = explode(',', $title);
-            $kanda_name = $level_labels[0] . ' ' . $file_level_array[0];
-            $sarga_name = $level_labels[1] . ' ' . $file_level_array[1];
-            $sloka_name = $level_labels[2] . ' ' . $file_level_array[2];
+          $var = explode(',', $title);
+          $kanda_name = $level_labels[0] . ' ' . $file_level_array[0];
+          $sarga_name = $level_labels[1] . ' ' . $file_level_array[1];
+          $sloka_name = $level_labels[2] . ' ' . $file_level_array[2];
 
-            // Find the kanda tid.
-            $kanda_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name", [':vid' => $text_machine_name, ':name' => $kanda_name])->fetchField();
+          // Find the kanda tid.
+          $kanda_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name", [':vid' => $text_machine_name, ':name' => $kanda_name])->fetchField();
 
-            $sarga_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => $text_machine_name, ':name' => $sarga_name, ':parent_tid' => $kanda_tid])->fetchField();
+          $sarga_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => $text_machine_name, ':name' => $sarga_name, ':parent_tid' => $kanda_tid])->fetchField();
 
-            $sloka_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => $text_machine_name, ':name' => $sloka_name, ':parent_tid' => $sarga_tid])->fetchField();
+          $sloka_tid = db_query("SELECT tid FROM `taxonomy_term_field_data` WHERE vid = :vid AND name = :name AND tid IN (SELECT entity_id FROM `taxonomy_term__parent` WHERE parent_target_id = :parent_tid)", [':vid' => $text_machine_name, ':name' => $sloka_name, ':parent_tid' => $sarga_tid])->fetchField();
 
-            $node = entity_create('node', [
+          $node = entity_create('node', [
 
-              'type' => $text_machine_name,
-              'title' => $title,
-              'langcode' => 'dv',
+          'type' => $text_machine_name,
+          'title' => $title,
+          'langcode' => 'dv',
 
-              'field_positional_index' => [['target_id' => (int) $kanda_tid], ['target_id' => (int) $sarga_tid], ['target_id' => (int) $sloka_tid]],
+          'field_positional_index' => [['target_id' => (int) $kanda_tid], ['target_id' => (int) $sarga_tid], ['target_id' => (int) $sloka_tid]],
 
-              $field_name => ['target_id' => $file->id()],
+          $field_name => ['target_id' => $file->id()],
 
-            ]
-                        );
+          ]
+          );
 
-            // $node->save();
+          // $node->save();
           } */
         }
-          $context['results'][] = $title;
-          $context['results']['textname'] = $text_machine_name;
+        $context['results'][] = $title;
+        $context['results']['textname'] = $text_machine_name;
       }
       // $l = explode(".", $upload);
       // $l should look like $l = [1-1,mp3]
@@ -270,8 +278,8 @@ class ImportAudio {
        */
 
     }
-  //  $context['results'][] = $title;
-  //  $context['results']['textname'] = $text_machine_name;
+    // $context['results'][] = $title;
+    //  $context['results']['textname'] = $text_machine_name;
     // Optional message displayed under the progressbar.
     $context['message'] = t('Running Batch');
 
